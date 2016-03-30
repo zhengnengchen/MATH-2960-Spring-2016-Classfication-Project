@@ -4,8 +4,8 @@
 % Employee: Shuang Guan, Shutong Luo, Zhengneng Chen, Ziao Yan
 
 % First, let's clean any open figures.
-clc;
 clear;
+clc;
 close all;
 
 % Now read raw data.
@@ -154,18 +154,28 @@ FisherTestError = (FisherPosErrorTest + FisherNegErrorTest) / (size(ap_test, 1) 
 HistClass(ap_test, am_test, w_fisher, t_fisher, 'Fisher LDA Method Testing Results', FisherTestError);
 
 %% 8. The predictive model(Fisher LDA)
-% Because using Mean method has an error of 33.37% on training data
-% and 41.90% on testing data and using Fisher LDA method has an error of
+% Because using Mean method has an total error of 33.37% on training data
+% and 41.90% on testing data and using Fisher LDA method has an total error of
 % 13.79% on training data and 16.19% on test data.
 % We use Fisher LDA method as our predictive model
 normal_pred = w_fisher;
 threshold_pred = t_fisher;
 
-%% 9. Estimate our model's performance
+%% 9. Performance of our model doing on 'DatasetA.csv'
+% Class 1 error
+ap_error = (FisherPosErrorTrain + FisherPosErrorTest) / (size(ap_train, 1) + size(ap_test, 1));
+
+% Class -1 error
+am_error = (FisherNegErrorTrain + FisherNegErrorTest) / (size(am_train, 1) + size(am_test, 1));
+
+% Total error
+total_error = (FisherPosErrorTrain + FisherPosErrorTest + FisherNegErrorTrain + FisherNegErrorTest) / (size(a, 1));
+
+%% 10. Estimate our model's performance
 % As we tested a set of data in 'DatasetA.csv' by using Mean method and
-% Fisher LDA method, we have a conclusion that Mean method have an error in
+% Fisher LDA method, we have a conclusion that Mean method have an total error in
 % range of 30-40% varing due to data set's size. Meanwhile, Fisher LDA
-% method give us an error level of 10-20% varing due to data set's size.
+% method give us an total error of 10-20% varing due to data set's size.
 
 % Let's have a look about the test data's size in 'DatasetA.csv' and the to-be-test
 % data's size in 'DatasetV.csv'
@@ -174,16 +184,22 @@ v_size = size(v, 1);
 
 % As we tested before, training set has a size of 1055 - 105 = 950 and has an error of
 % 13.79%. Data in 'DatasetV.csv's size is 400 which is less than 950 but
-% greater than 105. It's reasonable to estimate that the error of using
+% greater than 105. It's reasonable to estimate that the total error of using
 % Fisher LDA method to test 'DatasetV.csv' is around 15% which between
 % 13.79% and 16.19%
 
-%% 10. Test data in "DatasetV.csv" using our model
+% As we already tested that class 1's error is 14.3% and class -1's error
+% is 13.9%. We can reasonable induct that class 1 and class -1's error on
+% 'DatasetV.csv' is around 14% by using Fisher LDA method.
+%% 11. Test data in "DatasetV.csv" using our model
 % Number of points of class 1
-close all
-svmstruct = svmtrain(a_train, label_train);
-group = svmclassify(svmstruct, a_test);
+sum(v * w_fisher > t_fisher);
 % Number of points of class -1
-aptest_num = sum(group == 1)
-amtest_num = sum(group == -1)
-error = sum(group ~= label_test) / 105 
+sum(v * w_fisher < t_fisher);
+
+%% 12. Write into 'DatasetV.csv'
+close all;
+
+v_label = (v * w_fisher > t_fisher) - (v * w_fisher < t_fisher);
+v_raw = [v_raw, v_label];
+csvwrite('DatasetV using Fisher LDA by SWD Inc.csv', v_raw);
